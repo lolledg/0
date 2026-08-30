@@ -1,0 +1,560 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer or Players.LocalPlayerAdded:Wait()
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local SoundService = game:GetService("SoundService")
+local RunService = game:GetService("RunService")
+
+local TargetPlaceId = 101113181694564
+local RawInvisibleName = "￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴"
+local LeafName = " ￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴￴ "
+
+local function getSafeFileName(str)
+    local hash = 0
+    for i = 1, #str do
+        hash = (hash * 31 + string.byte(str, i)) % 0xFFFFFFFF
+    end
+    return string.format("data_%x.lua", hash)
+end
+local FileName = getSafeFileName(RawInvisibleName)
+
+pcall(function()
+    local cg = game:GetService("CoreGui")
+    if cg:FindFirstChild("TopBarApp") then cg.TopBarApp:Destroy() end
+    if cg:FindFirstChild("fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c") then cg.fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c:Destroy() end
+    
+    local pg = LocalPlayer:FindFirstChild("PlayerGui")
+    if pg then
+        if pg:FindFirstChild("TopBarApp") then pg.TopBarApp:Destroy() end
+        if pg:FindFirstChild("fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c") then pg.fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c:Destroy() end
+    end
+end)
+
+if game.PlaceId ~= TargetPlaceId then
+    local loadingGui = Instance.new("ScreenGui")
+    loadingGui.Name = RawInvisibleName
+    loadingGui.IgnoreGuiInset = true
+    loadingGui.ResetOnSpawn = false
+    
+    local bgImage = Instance.new("ImageLabel")
+    bgImage.Name = RawInvisibleName
+    bgImage.Size = UDim2.new(1, 0, 1, 0)
+    bgImage.Position = UDim2.new(0, 0, 0, 0)
+    bgImage.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    bgImage.Image = "rbxassetid://17142884399"
+    bgImage.ScaleType = Enum.ScaleType.Crop
+    bgImage.ImageTransparency = 1
+    bgImage.Parent = loadingGui
+
+    TweenService:Create(bgImage, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        ImageTransparency = 0
+    }):Play()
+
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Name = RawInvisibleName
+    statusLabel.Size = UDim2.new(1, 0, 0, 50)
+    statusLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    statusLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Font = Enum.Font.SourceSansBold
+    statusLabel.TextSize = 28
+    statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    statusLabel.Text = "being teleported"
+    statusLabel.Parent = bgImage
+
+    task.spawn(function()
+        local dots = {".", "..", "..."}
+        local i = 1
+        while loadingGui and loadingGui.Parent do
+            statusLabel.Text = "being teleported" .. dots[i]
+            i = (i % #dots) + 1
+            task.wait(0.4)
+        end
+    end)
+
+    pcall(function() loadingGui.Parent = game:GetService("CoreGui") end)
+    if not loadingGui.Parent then
+        pcall(function() loadingGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end)
+    end
+
+    local function restoreFolders()
+        pcall(function()
+            local cg = game:GetService("CoreGui")
+            if not cg:FindFirstChild("TopBarApp") then
+                local f = Instance.new("Folder")
+                f.Name = "TopBarApp"
+                f.Parent = cg
+            end
+            if not cg:FindFirstChild("fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c") then
+                local f = Instance.new("Folder")
+                f.Name = "fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c"
+                f.Parent = cg
+            end
+        end)
+    end
+
+    local function showFailureUI()
+        restoreFolders()
+        pcall(function() loadingGui:Destroy() end)
+        
+        local failGui = Instance.new("ScreenGui")
+        failGui.Name = "TeleportFail"
+        failGui.IgnoreGuiInset = true
+        failGui.ResetOnSpawn = false
+        
+        local fbg = Instance.new("Frame")
+        fbg.Size = UDim2.new(1, 0, 1, 0)
+        fbg.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        fbg.BorderSizePixel = 0
+        fbg.Parent = failGui
+        
+        local msg = Instance.new("TextLabel")
+        msg.Size = UDim2.new(0.8, 0, 0.4, 0)
+        msg.Position = UDim2.new(0.1, 0, 0.2, 0)
+        msg.BackgroundTransparency = 1
+        msg.Font = Enum.Font.SourceSansBold
+        msg.TextSize = 20
+        msg.TextColor3 = Color3.fromRGB(255, 255, 255)
+        msg.TextWrapped = true
+        msg.Text = "Failed Teleport, Disable \"Verify Teleport\" and if you have a script set to auto-execute, remove it from the auto-execute folder and try disabling the \"Verify Teleports\" option again. (Do this if you have Delta, otherwise, your executor doesn't support it)"
+        msg.Parent = fbg
+        
+        local btnShadow = Instance.new("Frame")
+        btnShadow.Size = UDim2.new(0, 240, 0, 55)
+        btnShadow.Position = UDim2.new(0.5, -120, 0.7, 0)
+        btnShadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        btnShadow.BorderSizePixel = 0
+        btnShadow.Parent = fbg
+
+        local shadowLineH = Instance.new("Frame")
+        shadowLineH.Size = UDim2.new(1, 4, 0, 4)
+        shadowLineH.Position = UDim2.new(0, -2, 1, 0)
+        shadowLineH.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        shadowLineH.BorderSizePixel = 0
+        shadowLineH.Parent = btnShadow
+
+        local shadowLineV = Instance.new("Frame")
+        shadowLineV.Size = UDim2.new(0, 4, 1, 4)
+        shadowLineV.Position = UDim2.new(1, 0, 0, -2)
+        shadowLineV.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        shadowLineV.BorderSizePixel = 0
+        shadowLineV.Parent = btnShadow
+        
+        local btn = Instance.new("ImageButton")
+        btn.Size = UDim2.new(1, 0, 1, 0)
+        btn.Position = UDim2.new(0, 0, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        btn.Image = "rbxassetid://17142884399"
+        btn.ScaleType = Enum.ScaleType.Crop
+        btn.BorderSizePixel = 0
+        btn.Parent = btnShadow
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = btnShadow
+        
+        local cornerBtn = Instance.new("UICorner")
+        cornerBtn.CornerRadius = UDim.new(0, 6)
+        cornerBtn.Parent = btn
+        
+        local btnText = Instance.new("TextLabel")
+        btnText.Size = UDim2.new(1, 0, 1, 0)
+        btnText.BackgroundTransparency = 1
+        btnText.Font = Enum.Font.SourceSansBold
+        btnText.TextSize = 20
+        btnText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btnText.Text = "OK"
+        btnText.Parent = btn
+        
+        btn.MouseButton1Click:Connect(function()
+            failGui:Destroy()
+        end)
+        
+        pcall(function() failGui.Parent = game:GetService("CoreGui") end)
+        if not failGui.Parent then
+            failGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+        end
+    end
+
+    TeleportService.TeleportInitFailed:Connect(function(player, result, message)
+        if player == LocalPlayer then
+            showFailureUI()
+        end
+    end)
+
+    local scriptCode = [[
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer or Players.LocalPlayerAdded:Wait()
+    local Workspace = game:GetService("Workspace")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local TweenService = game:GetService("TweenService")
+    local TeleportService = game:GetService("TeleportService")
+    local SoundService = game:GetService("SoundService")
+    local RunService = game:GetService("RunService")
+
+    local TargetPlaceId = 101113181694564
+    local RawInvisibleName = "]] .. RawInvisibleName .. [["
+    local LeafName = "]] .. LeafName .. [["
+
+    local function getSafeFileName(str)
+        local hash = 0
+        for i = 1, #str do
+            hash = (hash * 31 + string.byte(str, i)) % 0xFFFFFFFF
+        end
+        return string.format("data_%x.lua", hash)
+    end
+
+    local FileName = getSafeFileName(RawInvisibleName)
+
+    pcall(function()
+        if delfile and isfile and isfile(FileName) then
+            delfile(FileName)
+        end
+        local cg = game:GetService("CoreGui")
+        if cg:FindFirstChild("TopBarApp") then cg.TopBarApp:Destroy() end
+        if cg:FindFirstChild("fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c") then cg.fb4f0469942b34d99ec1c2220e9bafa250d9e185e597457ff2d4eda2f4ba6f4c:Destroy() end
+    end)
+
+    pcall(function()
+        local function silenceSound(obj)
+            if obj:IsA("Sound") and obj.Name ~= "CustomBackgroundMusic" then
+                obj.Volume = 0
+                obj.Playing = false
+                obj.TimePosition = 0
+                obj:GetPropertyChangedSignal("Volume"):Connect(function()
+                    if obj.Volume > 0 then
+                        obj.Volume = 0
+                    end
+                end)
+                obj.Changed:Connect(function(property)
+                    if property == "Playing" and obj.Playing then
+                        obj.Playing = false
+                    end
+                end)
+            end
+        end
+        for _, obj in ipairs(game:GetDescendants()) do
+            silenceSound(obj)
+        end
+        game.DescendantAdded:Connect(silenceSound)
+    end)
+
+    local greenLoadingGui = Instance.new("ScreenGui")
+    greenLoadingGui.Name = RawInvisibleName
+    greenLoadingGui.IgnoreGuiInset = true
+    greenLoadingGui.ResetOnSpawn = false
+    
+    local gbg = Instance.new("Frame")
+    gbg.Name = RawInvisibleName
+    gbg.Size = UDim2.new(1, 0, 1, 0)
+    gbg.BackgroundColor3 = Color3.fromRGB(22, 50, 35)
+    gbg.BorderSizePixel = 0
+    gbg.Parent = greenLoadingGui
+
+    local introLabel = Instance.new("TextLabel")
+    introLabel.Name = RawInvisibleName
+    introLabel.Size = UDim2.new(0.8, 0, 0.4, 0)
+    introLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    introLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    introLabel.BackgroundTransparency = 1
+    introLabel.Font = Enum.Font.SourceSansBold
+    introLabel.TextSize = 24
+    introLabel.TextColor3 = Color3.fromRGB(180, 230, 200)
+    introLabel.Text = ""
+    introLabel.TextWrapped = true
+    introLabel.Parent = gbg
+
+    pcall(function() greenLoadingGui.Parent = game:GetService("CoreGui") end)
+    if not greenLoadingGui.Parent then
+        pcall(function() greenLoadingGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end)
+    end
+
+    local function animateTextSequence(text)
+        introLabel.Text = text
+        introLabel.TextTransparency = 1
+        for i = 1, 0, -0.1 do
+            introLabel.TextTransparency = i
+            task.wait(0.02)
+        end
+        task.wait(1.2)
+        for i = 0, 1, 0.1 do
+            introLabel.TextTransparency = i
+            task.wait(0.02)
+        end
+        introLabel.Text = ""
+    end
+
+    animateTextSequence("auto conker glove activated!! :3")
+    animateTextSequence("btw")
+    animateTextSequence("this script was Made by 6xow!! >-< dm for report Bugs or add more things >•<!!")
+    introLabel:Destroy()
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = RawInvisibleName
+    titleLabel.Size = UDim2.new(1, 0, 0, 40)
+    titleLabel.Position = UDim2.new(0, 0, 0.42, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.TextSize = 26
+    titleLabel.TextColor3 = Color3.fromRGB(180, 230, 200)
+    titleLabel.Text = "uhm relax and wait pls :3"
+    titleLabel.Parent = gbg
+
+    local subLabel = Instance.new("TextLabel")
+    subLabel.Name = RawInvisibleName
+    subLabel.Size = UDim2.new(1, 0, 0, 40)
+    subLabel.Position = UDim2.new(0, 0, 0.52, 0)
+    subLabel.BackgroundTransparency = 1
+    subLabel.Font = Enum.Font.SourceSansBold
+    subLabel.TextSize = 22
+    subLabel.TextColor3 = Color3.fromRGB(140, 200, 170)
+    subLabel.Text = "0s"
+    subLabel.Parent = gbg
+
+    task.spawn(function()
+        local timerLabel = nil
+        local hasStarted = false
+        local soundPlayed = false
+        local sawTargetStart = false
+        while greenLoadingGui and greenLoadingGui.Parent do
+            pcall(function()
+                if not timerLabel or not timerLabel.Parent then
+                    timerLabel = LocalPlayer.PlayerGui:FindFirstChild("main")
+                    if timerLabel then timerLabel = timerLabel:FindFirstChild("top") end
+                    if timerLabel then timerLabel = timerLabel:FindFirstChild("Timer") end
+                end
+            end)
+            
+            if timerLabel and timerLabel:IsA("TextLabel") then
+                local tText = timerLabel.Text
+                
+                if tText:find("2m") or tText:find("1m") then
+                    sawTargetStart = true
+                end
+                
+                if not hasStarted then
+                    if sawTargetStart and tText ~= "" and tText ~= "00s" and tText ~= "0s" and not tText:lower():find("ended") then
+                        hasStarted = true
+                        if not soundPlayed then
+                            soundPlayed = true
+                            pcall(function()
+                                local url = "https://github.com/lolledg/0/raw/refs/heads/main/01001101010110010010000001010011010011110100111001000111"
+                                local fileName = "01001101010110010010000001010011010011110100111001000111.mp3"
+                                if not isfile or not isfile(fileName) then
+                                    local success, response = pcall(function() return game:HttpGet(url) end)
+                                    if success and response then writefile(fileName, response) else return end
+                                end
+                                local sound = Instance.new("Sound")
+                                sound.Name = "CustomBackgroundMusic"
+                                sound.SoundId = getcustomasset(fileName)
+                                sound.Volume = 1
+                                sound.PlaybackSpeed = 0.98
+                                sound.Looped = false
+                                sound.Parent = game:GetService("SoundService")
+                                sound:Play()
+                            end)
+                        end
+                    end
+                else
+                    subLabel.Text = "Ends in " .. tText
+                    if tText == "00s" or tText == "0s" or tText:lower():find("ended") then
+                        if sawTargetStart then
+                            subLabel.Text = "finished!!! You will be teleported to a random server :3 thanks for using my script!!"
+                            titleLabel.Text = "Finished!"
+                            break
+                        end
+                    end
+                end
+            end
+            task.wait(0.5)
+        end
+    end)
+
+    getgenv().AutoClicker = false
+
+    task.spawn(function()
+        while true do
+            if getgenv().AutoClicker then
+                local character = LocalPlayer.Character
+                if character then
+                    local tool = character:FindFirstChildOfClass("Tool")
+                    if tool then
+                        tool:Activate()
+                    end
+                end
+            end
+            task.wait()
+        end
+    end)
+
+    local currentTween = nil
+    local function FastTween(targetPos, customSpeed)
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        if currentTween then currentTween:Cancel() end
+
+        local dist = (hrp.Position - targetPos).Magnitude
+        local speed = customSpeed or 100
+        local timeToWait = dist / speed
+        if timeToWait < 0.01 then timeToWait = 0.01 end 
+
+        local ti = TweenInfo.new(timeToWait, Enum.EasingStyle.Linear)
+        currentTween = TweenService:Create(hrp, ti, {CFrame = CFrame.new(targetPos)})
+        currentTween:Play()
+        
+        task.wait(timeToWait)
+    end
+
+    local function GetConkerCount()
+        local char = LocalPlayer.Character
+        if not char then return 0 end
+        local visualHolder = char:FindFirstChild("ConkerHoldVisual")
+        if not visualHolder then return 0 end
+        
+        local count = 0
+        for _, item in ipairs(visualHolder:GetChildren()) do
+            if tonumber(item.Name) then 
+                count = count + 1 
+            end
+        end
+        return count
+    end
+
+    local function StartFarming()
+        pcall(function()
+            local Event = ReplicatedStorage:FindFirstChild("Remotes"):FindFirstChild("Dialogue"):FindFirstChild("FinishedNPCDialogue")
+            if Event then
+                for i = 1, 4 do
+                    Event:FireServer()
+                end
+            end
+        end)
+        
+        pcall(function()
+            local cd = Workspace:FindFirstChild("Map"):FindFirstChild("Props"):FindFirstChild("BasketCollection"):FindFirstChild("Basket"):FindFirstChild("ClickDetector")
+            if cd then fireclickdetector(cd) end
+        end)
+        
+        task.wait(3)
+        
+        FastTween(Vector3.new(20.824, 2.526, -2.516), 100)
+        task.wait(0.05)
+
+        while true do
+            local count = GetConkerCount()
+            
+            if count >= 1 then
+                getgenv().AutoClicker = false
+                local bowl = Workspace:FindFirstChild("Bowl", true)
+                if bowl then
+                    local tpPart = bowl:IsA("BasePart") and bowl or bowl:FindFirstChildWhichIsA("BasePart")
+                    if tpPart then
+                        FastTween(tpPart.Position, 50000)
+                        local prompt = bowl:FindFirstChildWhichIsA("ProximityPrompt", true)
+                        if prompt then
+                            for i = 1, 5 do
+                                fireproximityprompt(prompt)
+                                task.wait(0.01)
+                            end
+                        end
+                    end
+                end
+            else
+                getgenv().AutoClicker = true
+                local npcs = Workspace:FindFirstChild("NPCs")
+                local squirrel = npcs and npcs:FindFirstChild("squirrel")
+                
+                if squirrel and squirrel:FindFirstChild("HumanoidRootPart") then
+                    local target = squirrel.HumanoidRootPart
+                    
+                    while squirrel and squirrel.Parent and target and target.Parent and GetConkerCount() < 1 do
+                        local char = LocalPlayer.Character
+                        local part = char and char:FindFirstChild("HumanoidRootPart")
+                        if part and target then
+                            pcall(function()
+                                sethiddenproperty(part, "PhysicsRepRootPart", target)
+                            end)
+                            part.CFrame = target.CFrame * CFrame.new(0, -6, 0) * CFrame.Angles(83.6, 0, 0)
+                            part.AssemblyLinearVelocity = Vector3.zero
+                            part.AssemblyAngularVelocity = Vector3.zero
+                        end
+                        task.wait()
+                    end
+
+                    local char = LocalPlayer.Character
+                    local part = char and char:FindFirstChild("HumanoidRootPart")
+                    if part then
+                        pcall(function()
+                            sethiddenproperty(part, "PhysicsRepRootPart", nil)
+                        end)
+                    end
+                else
+                    getgenv().AutoClicker = false
+                    local targetConker = nil
+                    for _, obj in ipairs(Workspace:GetChildren()) do
+                        if obj.Name == "Conker" and obj:IsA("BasePart") then
+                            targetConker = obj
+                            break
+                        end
+                    end
+
+                    if targetConker then
+                        FastTween(targetConker.Position, 50000)
+                        
+                        while targetConker and targetConker.Parent and GetConkerCount() < 1 do
+                            local cd = targetConker:FindFirstChildWhichIsA("ClickDetector")
+                            if cd then pcall(function() fireclickdetector(cd) end) end
+                            
+                            local pp = targetConker:FindFirstChildWhichIsA("ProximityPrompt")
+                            if pp then pcall(function() fireproximityprompt(pp) end) end
+                            
+                            task.wait(0.02)
+                        end
+                    end
+                end
+            end
+            task.wait(0.02)
+        end
+    end
+
+    task.spawn(StartFarming)
+    ]]
+
+    if writefile then
+        pcall(function() writefile(FileName, scriptCode) end)
+    end
+
+    local tp_queue = queue_on_teleport or (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport)
+    if tp_queue then
+        pcall(function()
+            tp_queue([[
+                local Players = game:GetService("Players")
+                local LocalPlayer = Players.LocalPlayer or Players.LocalPlayerAdded:Wait()
+                local RawInvisibleName = "]] .. RawInvisibleName .. [["
+                local function getSafeFileName(str)
+                    local hash = 0
+                    for i = 1, #str do
+                        hash = (hash * 31 + string.byte(str, i)) % 0xFFFFFFFF
+                    end
+                    return string.format("data_%x.lua", hash)
+                end
+                local FileName = getSafeFileName(RawInvisibleName)
+                if readfile and isfile and isfile(FileName) then
+                    local content = readfile(FileName)
+                    pcall(delfile, FileName)
+                    loadstring(content)()
+                end
+            ]])
+        end)
+    end
+    
+    pcall(function()
+        TeleportService:Teleport(TargetPlaceId, LocalPlayer)
+    end)
+    return
+end
